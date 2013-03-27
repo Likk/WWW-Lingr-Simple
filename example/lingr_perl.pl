@@ -4,30 +4,29 @@ use feature 'say';
 use utf8;
 use Encode;
 
-use WWW::Lingr;
-use DateTime;
-use DateTime::Format::ISO8601;
+use WWW::Lingr::Simple;
+use HTTP::Date;
 use Text::Trim;
 
 our $WAIT_MIN = 10;
 
-my $lingr  = WWW::Lingr->new( room => q{perl_jp}) ;
-my $last_epoch = 0; #DateTime->now( time_zone => 'Asia/Tokyo')->add( minutes =>  $WAIT_MIN * -1)->epoch;
+my $lingr  = WWW::Lingr::Simple->new( room => q{perl_jp}) ;
+my $last_id = 0;
 while(1){
     my $data   = $lingr->get();
     for my $row (@$data){
-        my $timestamp = Text::Trim::trim($row->{timestamp});
-        my $dt = DateTime::Format::ISO8601->parse_datetime($timestamp);
-        if($dt->epoch() > $last_epoch){
-                my $line = sprintf("[%s] %s:%s", (
-                    $dt->add( hours =>  +9)->hms,
-                    $row->{nickname},
-                    $row->{description},
+        my $time = HTTP::Date::str2time($row->{timestamp});
+        if($last_id < $row->{id} + 0){
+            print Encode::encode_utf8(
+                sprintf("[%s] %s:%s\n", (
+                        HTTP::Date::time2iso($time),
+                        $row->{speaker},
+                        $row->{description},
+                    )
                 )
             );
-            say Encode::encode_utf8 $line;
         }
+        $last_id = $row->{id} + 0;
     }
-    $last_epoch = DateTime->now( time_zone => 'Asia/Tokyo')->epoch;
     sleep 60 * $WAIT_MIN;
 }

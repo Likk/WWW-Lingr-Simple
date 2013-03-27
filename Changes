@@ -2,3 +2,5 @@ Revision history for Perl extension WWW::Lingr::Simple
 
 1.00    Sun Mar 17 19:55:01 2013
         - original version
+2.00    Wed Mar 27 19:00:01 2013
+        - function addition at sigin and post.
